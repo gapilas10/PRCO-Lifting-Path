@@ -11,8 +11,8 @@
             android:icon="@drawable/ic_action_home"
             />
         <item
-            android:id="@+id/work"
-            android:title="Work"
+            android:id="@+id/camera"
+            android:title="Camera"
             android:icon="@drawable/ic_action_work"
             />
         <item

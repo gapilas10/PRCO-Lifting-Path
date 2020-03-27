@@ -13,7 +13,7 @@ import kotlinx.android.synthetic.main.app_bar_main.*
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
 
     lateinit var homeFragment: HomeFragment
-    lateinit var workFragment: WorkFragment
+    lateinit var cameraFragment: CameraFragment
     lateinit var schoolFragment: SchoolFragment
     lateinit var timelineFragment: TimelineFragment
     lateinit var settingFragment: SettingFragment
@@ -49,6 +49,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             .replace(R.id.frame_layout,homeFragment)
             .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
             .commit()
+
     }
 
     override fun onNavigationItemSelected(menuItem: MenuItem): Boolean {
@@ -62,19 +63,11 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
                     .commit()
             }
-            R.id.home -> {
-                homeFragment = HomeFragment()
+            R.id.camera -> {
+                cameraFragment = CameraFragment()
                 supportFragmentManager
                     .beginTransaction()
-                    .replace(R.id.frame_layout,homeFragment)
-                    .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-                    .commit()
-            }
-            R.id.work -> {
-                workFragment = WorkFragment()
-                supportFragmentManager
-                    .beginTransaction()
-                    .replace(R.id.frame_layout,workFragment)
+                    .replace(R.id.frame_layout,cameraFragment)
                     .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
                     .commit()
             }
