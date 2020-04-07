@@ -81,7 +81,7 @@ class TimelineFragment : Fragment() {
         {
             Log.d("what","cancel")
         }
-        if (resultCode == GALLERY)
+        if (requestCode == GALLERY)
         {
             Log.d("what", "gallery")
 
