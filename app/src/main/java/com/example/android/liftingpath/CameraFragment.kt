@@ -13,8 +13,8 @@ import org.opencv.android.BaseLoaderCallback
 import org.opencv.android.CameraBridgeViewBase
 import org.opencv.android.LoaderCallbackInterface
 import org.opencv.android.OpenCVLoader
-import org.opencv.core.CvType
 import org.opencv.core.Mat
+import org.opencv.imgproc.Imgproc
 
 
 /**
@@ -22,9 +22,9 @@ import org.opencv.core.Mat
  */
 class CameraFragment : Fragment(), CameraBridgeViewBase.CvCameraViewListener2  {
 
-    //private var decorView: View?=null
-
     private var cameraBridgeViewBase: CameraBridgeViewBase? = null
+    private var currentlyProcessing = false;
+
 
     private val baseLoaderCallback = object : BaseLoaderCallback(this.activity){
         override fun onManagerConnected(status: Int) {
@@ -56,11 +56,14 @@ class CameraFragment : Fragment(), CameraBridgeViewBase.CvCameraViewListener2  {
 
     private fun initView()
     {
-
         //Initialize camera
         cameraBridgeViewBase = openCvCameraView
         cameraBridgeViewBase!!.visibility = SurfaceView.VISIBLE
         cameraBridgeViewBase!!.setCvCameraViewListener(this)
+        //Initialize button
+        processButton.setOnClickListener{
+            currentlyProcessing = !currentlyProcessing
+        }
     }
 
     override fun onCameraViewStarted(width: Int, height: Int) {
@@ -73,7 +76,15 @@ class CameraFragment : Fragment(), CameraBridgeViewBase.CvCameraViewListener2  {
 
     override fun onCameraFrame(inputFrame: CameraBridgeViewBase.CvCameraViewFrame?): Mat {
 
-        return inputFrame!!.rgba()
+        var frame = inputFrame!!.rgba()
+
+        if(currentlyProcessing)
+        {
+            Imgproc.cvtColor(frame, frame, Imgproc.COLOR_RGBA2GRAY);
+            Imgproc.Canny(frame, frame, 100.0, 80.0);
+        }
+
+        return frame
     }
 
     override fun onResume() {
@@ -105,4 +116,5 @@ class CameraFragment : Fragment(), CameraBridgeViewBase.CvCameraViewListener2  {
         //return to normal orientation
         activity?.requestedOrientation = SCREEN_ORIENTATION_UNSPECIFIED
     }
+
 }

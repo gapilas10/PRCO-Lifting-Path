@@ -19,6 +19,8 @@ import android.widget.Button
 import android.widget.Toast
 import android.widget.VideoView
 import kotlinx.android.synthetic.main.fragment_timeline.*
+import org.opencv.core.Mat
+import org.opencv.videoio.VideoCapture
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
