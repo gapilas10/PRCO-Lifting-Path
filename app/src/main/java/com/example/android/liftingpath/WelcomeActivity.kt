@@ -104,7 +104,7 @@ class WelcomeActivity : AppCompatActivity() {
                             || ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)
                             || ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.RECORD_AUDIO)) {
                             showDialogOK("Service Permissions are required for this app",
-                                DialogInterface.OnClickListener { dialog, which ->
+                                DialogInterface.OnClickListener { _, which ->
                                     when (which) {
                                         DialogInterface.BUTTON_POSITIVE -> checkAndRequestPermissions()
                                         DialogInterface.BUTTON_NEGATIVE ->
@@ -136,14 +136,14 @@ class WelcomeActivity : AppCompatActivity() {
     private fun explain(msg: String) {
         val dialog = AlertDialog.Builder(this)
         dialog.setMessage(msg)
-            .setPositiveButton("Yes") { paramDialogInterface, paramInt ->
+            .setPositiveButton("Yes") { _, _ ->
                 //  permissionsclass.requestPermission(type,code);
                 val settings = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
                 val uri = Uri.fromParts("package",packageName,null)
                 settings.setData(uri)
                 startActivity(settings)
             }
-            .setNegativeButton("Cancel") { paramDialogInterface, paramInt -> finish() }
+            .setNegativeButton("Cancel") { _, _ -> finish() }
         dialog.show()
     }
 }

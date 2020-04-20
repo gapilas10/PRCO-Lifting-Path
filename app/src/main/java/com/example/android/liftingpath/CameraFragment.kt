@@ -1,5 +1,6 @@
 package com.example.android.liftingpath
 
+import android.content.Context
 import android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
 import android.os.Bundle
 import android.util.Log
@@ -14,7 +15,16 @@ import org.opencv.android.CameraBridgeViewBase
 import org.opencv.android.LoaderCallbackInterface
 import org.opencv.android.OpenCVLoader
 import org.opencv.core.Mat
+import org.opencv.core.Point
+import org.opencv.core.Scalar
+import org.opencv.core.Size
+import org.opencv.dnn.Dnn
+import org.opencv.dnn.Net
 import org.opencv.imgproc.Imgproc
+import java.io.BufferedInputStream
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
 
 
 /**
@@ -24,27 +34,44 @@ class CameraFragment : Fragment(), CameraBridgeViewBase.CvCameraViewListener2  {
 
     private var cameraBridgeViewBase: CameraBridgeViewBase? = null
     private var currentlyProcessing = false;
+    private var firstTimeTensor = false;
+    private lateinit var tensorflowNet:Net
 
-
-    private val baseLoaderCallback = object : BaseLoaderCallback(this.activity){
+    private var  baseLoaderCallback = object : BaseLoaderCallback(this.activity){
         override fun onManagerConnected(status: Int) {
             when(status){
-                    LoaderCallbackInterface.SUCCESS ->
-                    {
-                        cameraBridgeViewBase!!.enableView()
-                    }
+                LoaderCallbackInterface.SUCCESS ->
+                {
+                    cameraBridgeViewBase!!.enableView()
+                }
                 else -> super.onManagerConnected(status)
             }
         }
     }
 
+    //private lateinit var baseLoaderCallback: BaseLoaderCallback
+
+/*    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        baseLoaderCallback = object : BaseLoaderCallback(this.activity){
+            override fun onManagerConnected(status: Int) {
+                when(status){
+                    LoaderCallbackInterface.SUCCESS ->
+                    {
+                        cameraBridgeViewBase!!.enableView()
+                    }
+                    else -> super.onManagerConnected(status)
+                }
+            }
+        }
+    }*/
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?): View? {
-        //change orientation to landscape
-        //activity?.requestedOrientation = SCREEN_ORIENTATION_LANDSCAPE
+        //attach to activity
+
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_camera, container, false)
     }
@@ -63,11 +90,34 @@ class CameraFragment : Fragment(), CameraBridgeViewBase.CvCameraViewListener2  {
         //Initialize button
         processButton.setOnClickListener{
             currentlyProcessing = !currentlyProcessing
+
+            if(!firstTimeTensor)
+            {
+                firstTimeTensor = true
+                val tensorflowModel = this.context?.let { it1 ->
+                    getPath("/TensorflowModel/frozen_inference_graph.pb",
+                        it1
+                    )
+                }
+                val tensorflowGraph =
+                    this.context?.let { it1 -> getPath("/TensorflowModel/ssdGraph.pbtxt", it1) }
+
+                tensorflowNet = Dnn.readNetFromTensorflow(tensorflowModel,tensorflowGraph)
+            }
         }
     }
 
     override fun onCameraViewStarted(width: Int, height: Int) {
+        val tensorflowModel = this.context?.let { it1 ->
+            getPath("/TensorflowModel/frozen_inference_graph.pb",
+                it1
+            )
+        }
+        val tensorflowGraph =
+            this.context?.let { it1 -> getPath("/TensorflowModel/ssdGraph.pbtxt", it1) }
 
+        tensorflowNet = Dnn.readNetFromTensorflow(tensorflowModel,tensorflowGraph)
+        Log.i("","Network loaded successfully")
     }
 
     override fun onCameraViewStopped() {
@@ -75,13 +125,54 @@ class CameraFragment : Fragment(), CameraBridgeViewBase.CvCameraViewListener2  {
     }
 
     override fun onCameraFrame(inputFrame: CameraBridgeViewBase.CvCameraViewFrame?): Mat {
-
-        var frame = inputFrame!!.rgba()
+        val IN_WIDTH = 300.0
+        val IN_HEIGHT = 300.0
+        val IN_SCALE_FACTOR = 1.0
+        val MEAN_VAL = 0.0
+        val THRESHOLD = 0.2;
+        val frame = inputFrame!!.rgba()
 
         if(currentlyProcessing)
         {
-            Imgproc.cvtColor(frame, frame, Imgproc.COLOR_RGBA2GRAY);
-            Imgproc.Canny(frame, frame, 100.0, 80.0);
+            Imgproc.cvtColor(frame, frame, Imgproc.COLOR_RGBA2RGB);
+
+            val imageBlob = Dnn.blobFromImage(frame, IN_SCALE_FACTOR, Size(IN_WIDTH,IN_HEIGHT), Scalar(MEAN_VAL,MEAN_VAL,MEAN_VAL),false,false)
+
+            tensorflowNet.setInput(imageBlob)
+
+            var detections = tensorflowNet.forward()
+
+            val cols = frame.cols()
+            val rows = frame.rows()
+
+            detections = detections.reshape(1, (detections.total()/7).toInt())
+
+            for (i in 0..detections.rows())
+            {
+                val confidence = detections.get(i,1)[0]
+                if (confidence > THRESHOLD)
+                {
+                    //var classId = detections.get(i,1)[0]
+
+                    val left = detections.get(i,3)[0]*cols
+                    val top = detections.get(i,4)[0]*rows
+                    val right = detections.get(i,5)[0]*cols
+                    val bottom = detections.get(i,6)[0]*rows
+
+                    // Draw rectangle around retected object.
+                    Imgproc.rectangle(frame, Point(left,top), Point(right,bottom), Scalar(0.0,255.0,0.0))
+                    val label = "yellow_band" + ":" + confidence
+                    val baseline = intArrayOf(1)
+                    val labelSize = Imgproc.getTextSize(label, 0, 0.5,1,baseline)
+
+                    // Draw background for label
+                    Imgproc.rectangle(frame, Point(left,top-labelSize.height), Point(left+labelSize.width,top+baseline[0]),Scalar(255.0,255.0,255.0), 1)
+                    // Write class name and confidence
+                    Imgproc.putText(frame,label, Point(left,top), 0,0.5,
+                        Scalar(0.0,0.0,0.0)
+                    )
+                }
+            }
         }
 
         return frame
@@ -115,6 +206,32 @@ class CameraFragment : Fragment(), CameraBridgeViewBase.CvCameraViewListener2  {
         }
         //return to normal orientation
         activity?.requestedOrientation = SCREEN_ORIENTATION_UNSPECIFIED
+    }
+
+    private fun getPath(file:String, context:Context): String {
+        val assetManager = context.assets
+
+        var inputStream:BufferedInputStream? = null
+        try{
+            // Read data from assets
+            inputStream = BufferedInputStream(assetManager.open(file))
+            val data = ByteArray(inputStream.available())
+            inputStream.read(data)
+            inputStream.close()
+
+            // Create copy of file in storage
+            var outFile = File(context.filesDir,file)
+            var outputStream = FileOutputStream(outFile)
+            outputStream.write(data)
+            outputStream.close()
+            // Return a path to file which may be read in common way
+            return outFile.absolutePath
+        }
+        catch (e: IOException)
+        {
+            Log.i("","Failed to upload a file")
+        }
+        return ""
     }
 
 }
