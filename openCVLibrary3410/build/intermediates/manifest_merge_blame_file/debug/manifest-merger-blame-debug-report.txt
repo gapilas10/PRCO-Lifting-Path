@@ -5,10 +5,9 @@
 5    android:versionName="3.4.10" >
 6
 7    <uses-sdk
-7-->C:\Users\Leonardo\Desktop\Uni\LiftingPath\openCVLibrary3410\src\main\AndroidManifest.xml:7:5-74
 8        android:minSdkVersion="23"
-8-->C:\Users\Leonardo\Desktop\Uni\LiftingPath\openCVLibrary3410\src\main\AndroidManifest.xml:7:15-41
+8-->C:\Users\Leonardo\Desktop\Uni\LiftingPath\openCVLibrary3410\src\main\AndroidManifest.xml
 9        android:targetSdkVersion="29" />
-9-->C:\Users\Leonardo\Desktop\Uni\LiftingPath\openCVLibrary3410\src\main\AndroidManifest.xml:7:42-71
+9-->C:\Users\Leonardo\Desktop\Uni\LiftingPath\openCVLibrary3410\src\main\AndroidManifest.xml
 10
 11</manifest>

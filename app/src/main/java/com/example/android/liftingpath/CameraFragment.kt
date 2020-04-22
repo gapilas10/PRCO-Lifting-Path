@@ -14,6 +14,7 @@ import org.opencv.android.BaseLoaderCallback
 import org.opencv.android.CameraBridgeViewBase
 import org.opencv.android.LoaderCallbackInterface
 import org.opencv.android.OpenCVLoader
+import org.opencv.core.CvType.CV_32F
 import org.opencv.core.Mat
 import org.opencv.core.Point
 import org.opencv.core.Scalar
@@ -34,7 +35,7 @@ class CameraFragment : Fragment(), CameraBridgeViewBase.CvCameraViewListener2  {
 
     private var cameraBridgeViewBase: CameraBridgeViewBase? = null
     private var currentlyProcessing = false;
-    private var firstTimeTensor = false;
+    //private var firstTimeTensor = false;
     private lateinit var tensorflowNet:Net
 
     private var  baseLoaderCallback = object : BaseLoaderCallback(this.activity){
@@ -91,33 +92,23 @@ class CameraFragment : Fragment(), CameraBridgeViewBase.CvCameraViewListener2  {
         processButton.setOnClickListener{
             currentlyProcessing = !currentlyProcessing
 
-            if(!firstTimeTensor)
+            /*if(!firstTimeTensor)
             {
                 firstTimeTensor = true
-                val tensorflowModel = this.context?.let { it1 ->
-                    getPath("/TensorflowModel/frozen_inference_graph.pb",
-                        it1
-                    )
-                }
-                val tensorflowGraph =
-                    this.context?.let { it1 -> getPath("/TensorflowModel/ssdGraph.pbtxt", it1) }
+                val tensorflowModel = getPath("ssdV3Model.pb", this.context)
+                val tensorflowGraph = getPath("ssdV3Graph.pbtxt", this.context)
 
-                tensorflowNet = Dnn.readNetFromTensorflow(tensorflowModel,tensorflowGraph)
-            }
+                tensorflowNet = Dnn.readNetFromTensorflow(tensorflowModel, tensorflowGraph)
+            }*/
         }
     }
 
     override fun onCameraViewStarted(width: Int, height: Int) {
-        val tensorflowModel = this.context?.let { it1 ->
-            getPath("/TensorflowModel/frozen_inference_graph.pb",
-                it1
-            )
-        }
-        val tensorflowGraph =
-            this.context?.let { it1 -> getPath("/TensorflowModel/ssdGraph.pbtxt", it1) }
+        val tensorflowModel = getPath("frozen_inference_graph.pb", this.context)
+        val tensorflowGraph = getPath("ssdGraph.pbtxt", this.context)
 
-        tensorflowNet = Dnn.readNetFromTensorflow(tensorflowModel,tensorflowGraph)
-        Log.i("","Network loaded successfully")
+        tensorflowNet = Dnn.readNetFromTensorflow(tensorflowModel, tensorflowGraph)
+       // Log.i("","Network loaded successfully")
     }
 
     override fun onCameraViewStopped() {
@@ -129,27 +120,28 @@ class CameraFragment : Fragment(), CameraBridgeViewBase.CvCameraViewListener2  {
         val IN_HEIGHT = 300.0
         val IN_SCALE_FACTOR = 1.0
         val MEAN_VAL = 0.0
-        val THRESHOLD = 0.2;
+        val THRESHOLD = 0.6;
         val frame = inputFrame!!.rgba()
 
         if(currentlyProcessing)
         {
             Imgproc.cvtColor(frame, frame, Imgproc.COLOR_RGBA2RGB);
-
-            val imageBlob = Dnn.blobFromImage(frame, IN_SCALE_FACTOR, Size(IN_WIDTH,IN_HEIGHT), Scalar(MEAN_VAL,MEAN_VAL,MEAN_VAL),false,false)
+            val imageBlob = Dnn.blobFromImage(frame, IN_SCALE_FACTOR, Size(IN_WIDTH,IN_HEIGHT), Scalar(MEAN_VAL),true ,false)
+            Log.d("image Blob :",imageBlob.toString())
 
             tensorflowNet.setInput(imageBlob)
 
-            var detections = tensorflowNet.forward()
+            val detections = tensorflowNet.forward().reshape(1,1)
 
             val cols = frame.cols()
             val rows = frame.rows()
 
-            detections = detections.reshape(1, (detections.total()/7).toInt())
+            //Log.d("detections : " , detections.toString())
+           // Log.d("detections.rows : " , detections.rows().toString())
 
-            for (i in 0..detections.rows())
+            for (i in 0 until detections.rows())
             {
-                val confidence = detections.get(i,1)[0]
+                val confidence = detections.get(i,2)[0]
                 if (confidence > THRESHOLD)
                 {
                     //var classId = detections.get(i,1)[0]
@@ -166,7 +158,7 @@ class CameraFragment : Fragment(), CameraBridgeViewBase.CvCameraViewListener2  {
                     val labelSize = Imgproc.getTextSize(label, 0, 0.5,1,baseline)
 
                     // Draw background for label
-                    Imgproc.rectangle(frame, Point(left,top-labelSize.height), Point(left+labelSize.width,top+baseline[0]),Scalar(255.0,255.0,255.0), 1)
+                    Imgproc.rectangle(frame, Point(left,top-labelSize.height), Point(left+labelSize.width,top+baseline[0]),Scalar(255.0,255.0,255.0), 2)
                     // Write class name and confidence
                     Imgproc.putText(frame,label, Point(left,top), 0,0.5,
                         Scalar(0.0,0.0,0.0)
@@ -208,19 +200,21 @@ class CameraFragment : Fragment(), CameraBridgeViewBase.CvCameraViewListener2  {
         activity?.requestedOrientation = SCREEN_ORIENTATION_UNSPECIFIED
     }
 
-    private fun getPath(file:String, context:Context): String {
-        val assetManager = context.assets
+    private fun getPath(file:String, context: Context?): String {
+        val assetManager = context?.assets
 
         var inputStream:BufferedInputStream? = null
         try{
             // Read data from assets
-            inputStream = BufferedInputStream(assetManager.open(file))
-            val data = ByteArray(inputStream.available())
-            inputStream.read(data)
-            inputStream.close()
+            if (assetManager != null) {
+                inputStream = BufferedInputStream(assetManager.open(file))
+            }
+            val data = inputStream?.available()?.let { ByteArray(it) }
+            inputStream?.read(data)
+            inputStream?.close()
 
             // Create copy of file in storage
-            var outFile = File(context.filesDir,file)
+            var outFile = File(context?.filesDir,file)
             var outputStream = FileOutputStream(outFile)
             outputStream.write(data)
             outputStream.close()
