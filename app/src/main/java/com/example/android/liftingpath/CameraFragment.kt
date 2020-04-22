@@ -151,17 +151,18 @@ class CameraFragment : Fragment(), CameraBridgeViewBase.CvCameraViewListener2  {
                     val right = detections.get(i,5)[0]*cols
                     val bottom = detections.get(i,6)[0]*rows
 
-                    // Draw rectangle around retected object.
+                    // Draw rectangle around detected object.
                     Imgproc.rectangle(frame, Point(left,top), Point(right,bottom), Scalar(0.0,255.0,0.0))
                     val label = "yellow_band" + ":" + confidence
                     val baseline = intArrayOf(1)
-                    val labelSize = Imgproc.getTextSize(label, 0, 0.5,1,baseline)
+                    val labelSize = Imgproc.getTextSize(label, 2, 1.0,2,baseline)
 
                     // Draw background for label
-                    Imgproc.rectangle(frame, Point(left,top-labelSize.height), Point(left+labelSize.width,top+baseline[0]),Scalar(255.0,255.0,255.0), 2)
+                    Imgproc.rectangle(frame, Point(left,top-labelSize.height), Point(left+labelSize.width,top+baseline[0]),Scalar(0.0,0.0,0.0), 2)
+                    //Imgproc.rectangle(frame, Point(right,bottom), Point(right+labelSize.height,top),Scalar(0.0,0.0,0.0), 2)
                     // Write class name and confidence
-                    Imgproc.putText(frame,label, Point(left,top), 0,0.5,
-                        Scalar(0.0,0.0,0.0)
+                    Imgproc.putText(frame,label, Point(left,top), 2,1.0,
+                        Scalar(255.0,255.0,255.0)
                     )
                 }
             }
