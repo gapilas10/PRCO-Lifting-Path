@@ -1,22 +1,9 @@
 package com.example.android.liftingpath
 
-import android.Manifest
-import android.content.DialogInterface
-import android.content.Intent
-import android.content.pm.PackageManager
-import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.os.Handler
-import android.os.Message
-import android.provider.Settings
-import android.util.Log
 import android.view.MenuItem
-import android.widget.Switch
 import androidx.appcompat.app.ActionBarDrawerToggle
-import androidx.appcompat.app.AlertDialog
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
 import androidx.fragment.app.FragmentTransaction
 import com.google.android.material.navigation.NavigationView
@@ -27,8 +14,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     lateinit var homeFragment: HomeFragment
     lateinit var cameraFragment: CameraFragment
-    lateinit var schoolFragment: SchoolFragment
-    lateinit var timelineFragment: TimelineFragment
+    lateinit var videoFragment: VideoFragment
     lateinit var settingFragment: SettingFragment
     lateinit var logoutFragment: LogoutFragment
 
@@ -86,19 +72,11 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
                     .commit()
             }
-            R.id.school -> {
-                schoolFragment = SchoolFragment()
+            R.id.video -> {
+                videoFragment = VideoFragment()
                 supportFragmentManager
                     .beginTransaction()
-                    .replace(R.id.frame_layout,schoolFragment)
-                    .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-                    .commit()
-            }
-            R.id.timeline -> {
-                timelineFragment = TimelineFragment()
-                supportFragmentManager
-                    .beginTransaction()
-                    .replace(R.id.frame_layout,timelineFragment)
+                    .replace(R.id.frame_layout,videoFragment)
                     .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
                     .commit()
             }

@@ -18,7 +18,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.Toast
 import android.widget.VideoView
-import kotlinx.android.synthetic.main.fragment_timeline.*
+import kotlinx.android.synthetic.main.fragment_video.*
 import org.opencv.core.Mat
 import org.opencv.videoio.VideoCapture
 import java.io.File
@@ -31,7 +31,7 @@ import java.util.*
 /**
  * A simple [Fragment] subclass.
  */
-class TimelineFragment : Fragment() {
+class VideoFragment : Fragment() {
     private var VIDEO_DIRECTORY = "/DemoVideos"
     private var GALLERY = 1
     private var CAMERA = 2
@@ -41,7 +41,7 @@ class TimelineFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_timeline, container, false)
+        return inflater.inflate(R.layout.fragment_video, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

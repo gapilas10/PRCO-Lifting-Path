@@ -12,17 +12,12 @@
             />
         <item
             android:id="@+id/camera"
-            android:title="Camera"
+            android:title="Real Time Camera"
             android:icon="@drawable/ic_action_work"
             />
         <item
-            android:id="@+id/school"
-            android:title="School"
-            android:icon="@drawable/ic_action_school"
-            />
-        <item
-            android:id="@+id/timeline"
-            android:title="Timeline"
+            android:id="@+id/video"
+            android:title="Video"
             android:icon="@drawable/ic_action_timeline"
             />
     </group>
