@@ -14,14 +14,12 @@ import org.opencv.android.BaseLoaderCallback
 import org.opencv.android.CameraBridgeViewBase
 import org.opencv.android.LoaderCallbackInterface
 import org.opencv.android.OpenCVLoader
+import org.opencv.core.*
 import org.opencv.core.CvType.CV_32F
-import org.opencv.core.Mat
-import org.opencv.core.Point
-import org.opencv.core.Scalar
-import org.opencv.core.Size
 import org.opencv.dnn.Dnn
 import org.opencv.dnn.Net
 import org.opencv.imgproc.Imgproc
+import org.opencv.utils.Converters
 import java.io.BufferedInputStream
 import java.io.File
 import java.io.FileOutputStream
@@ -35,7 +33,7 @@ class CameraFragment : Fragment(), CameraBridgeViewBase.CvCameraViewListener2  {
 
     private var cameraBridgeViewBase: CameraBridgeViewBase? = null
     private var currentlyProcessing = false;
-    //private var firstTimeTensor = false;
+    private lateinit var listOfPoints: ArrayList<Point>
     private lateinit var tensorflowNet:Net
 
     private var  baseLoaderCallback = object : BaseLoaderCallback(this.activity){
@@ -50,35 +48,17 @@ class CameraFragment : Fragment(), CameraBridgeViewBase.CvCameraViewListener2  {
         }
     }
 
-    //private lateinit var baseLoaderCallback: BaseLoaderCallback
-
-/*    override fun onAttach(context: Context) {
-        super.onAttach(context)
-        baseLoaderCallback = object : BaseLoaderCallback(this.activity){
-            override fun onManagerConnected(status: Int) {
-                when(status){
-                    LoaderCallbackInterface.SUCCESS ->
-                    {
-                        cameraBridgeViewBase!!.enableView()
-                    }
-                    else -> super.onManagerConnected(status)
-                }
-            }
-        }
-    }*/
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?): View? {
-        //attach to activity
-
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_camera, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        listOfPoints = ArrayList()
         initView()
     }
 
@@ -91,15 +71,6 @@ class CameraFragment : Fragment(), CameraBridgeViewBase.CvCameraViewListener2  {
         //Initialize button
         processButton.setOnClickListener{
             currentlyProcessing = !currentlyProcessing
-
-            /*if(!firstTimeTensor)
-            {
-                firstTimeTensor = true
-                val tensorflowModel = getPath("ssdV3Model.pb", this.context)
-                val tensorflowGraph = getPath("ssdV3Graph.pbtxt", this.context)
-
-                tensorflowNet = Dnn.readNetFromTensorflow(tensorflowModel, tensorflowGraph)
-            }*/
         }
     }
 
@@ -108,7 +79,6 @@ class CameraFragment : Fragment(), CameraBridgeViewBase.CvCameraViewListener2  {
         val tensorflowGraph = getPath("ssdGraph.pbtxt", this.context)
 
         tensorflowNet = Dnn.readNetFromTensorflow(tensorflowModel, tensorflowGraph)
-       // Log.i("","Network loaded successfully")
     }
 
     override fun onCameraViewStopped() {
@@ -136,9 +106,6 @@ class CameraFragment : Fragment(), CameraBridgeViewBase.CvCameraViewListener2  {
             val cols = frame.cols()
             val rows = frame.rows()
 
-            //Log.d("detections : " , detections.toString())
-           // Log.d("detections.rows : " , detections.rows().toString())
-
             for (i in 0 until detections.rows())
             {
                 val confidence = detections.get(i,2)[0]
@@ -156,6 +123,21 @@ class CameraFragment : Fragment(), CameraBridgeViewBase.CvCameraViewListener2  {
                     val label = "yellow_band" + ":" + confidence
                     val baseline = intArrayOf(1)
                     val labelSize = Imgproc.getTextSize(label, 2, 1.0,2,baseline)
+
+                    // Find centre of rectangle from detected object.
+                    val centre1 = (left + right) /2
+                    val centre2 = (top + bottom) / 2
+                    val circleCentre = Point(centre1,centre2)
+
+                    listOfPoints.add(circleCentre)
+                    val matOfPoint = MatOfPoint()
+                    matOfPoint.fromList(listOfPoints)
+                    val listOfPoints = ArrayList<MatOfPoint>()
+                    listOfPoints.add(matOfPoint)
+
+                    Imgproc.polylines(frame,listOfPoints,false,Scalar(255.0,0.0,0.0),5)
+
+                    //Imgproc.circle(frame,circleCentre, 5, Scalar(255.0,0.0,0.0), 5)
 
                     // Draw background for label
                     Imgproc.rectangle(frame, Point(left,top-labelSize.height), Point(left+labelSize.width,top+baseline[0]),Scalar(0.0,0.0,0.0), 2)

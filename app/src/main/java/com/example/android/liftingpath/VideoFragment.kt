@@ -3,30 +3,24 @@ package com.example.android.liftingpath
 
 import android.app.Activity.RESULT_CANCELED
 import android.app.AlertDialog
-import android.content.ContentResolver
-import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.Toast
-import android.widget.VideoView
+import androidx.fragment.app.Fragment
+import com.github.hiteshsondhi88.libffmpeg.ExecuteBinaryResponseHandler
+import com.github.hiteshsondhi88.libffmpeg.FFmpeg
 import kotlinx.android.synthetic.main.fragment_video.*
-import org.opencv.core.Mat
-import org.opencv.videoio.VideoCapture
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
-import java.lang.Exception
-import java.lang.IllegalArgumentException
 import java.util.*
+
 
 /**
  * A simple [Fragment] subclass.
@@ -90,8 +84,11 @@ class VideoFragment : Fragment() {
                 val contentURI = data?.data
 
                 val selectedVideoPath = getPath(contentURI).toString()
-                Log.d("path", selectedVideoPath)
+                Log.d("selectedVideoPath : ", selectedVideoPath)
                 saveVideoToInternalStorage(selectedVideoPath)
+
+                convertToImages(selectedVideoPath)
+
                 VideoView.setVideoURI(contentURI)
                 VideoView.requestFocus()
                 VideoView.start()
@@ -115,10 +112,8 @@ class VideoFragment : Fragment() {
 
         try {
             val currentFile = File(selectedVideoPath)
-            val wallpaperDirectory =
-                File(context?.getExternalFilesDir(null)?.absolutePath + VIDEO_DIRECTORY)
-            newFile =
-                File(wallpaperDirectory, Calendar.getInstance().timeInMillis.toString() + ".mp4")
+            val wallpaperDirectory = File(context?.getExternalFilesDir(null)?.absolutePath + VIDEO_DIRECTORY)
+            newFile = File(wallpaperDirectory, Calendar.getInstance().timeInMillis.toString() + ".mp4")
 
             if (!wallpaperDirectory.exists()) {
                 wallpaperDirectory.mkdirs()
@@ -158,6 +153,41 @@ class VideoFragment : Fragment() {
             cursor.getString(columnIndexID)
         } else {
             null
+        }
+    }
+
+    private fun convertToImages(selectedVideoPath: String)
+    {
+        Log.d("ENTERED convertToImages", "ENTERED convertToImages")
+        val filePath = File(selectedVideoPath).absolutePath
+        val wallpaperDirectory = File(context?.getExternalFilesDir(null)?.absolutePath + VIDEO_DIRECTORY)
+        var newFile = wallpaperDirectory.path
+        newFile = newFile + Calendar.getInstance().timeInMillis.toString() + ".mp4"
+        val command = arrayOf("-i", filePath, "-r", "1", newFile)
+        try {
+            FFmpeg.getInstance(context).execute(command,object : ExecuteBinaryResponseHandler() {
+                override fun onStart() {
+                    Log.d("TAG", "Started command")
+                }
+
+                override fun onFailure(message: String?) {
+                    Log.d("TAG", "Failed. Message : $message")
+                }
+
+                override fun onProgress(message: String?) {
+                    Log.d("TAG", "Progress : $message")
+                }
+
+                override fun onSuccess(message: String?) {
+                    Log.d("TAG", "successfully saved into : $newFile")
+                }
+
+                override fun onFinish() {
+                    Log.d("TAG", "Finished command")
+                }
+            })
+        } catch (e: Exception) {
+            Log.d("Exception : ", e.toString())
         }
     }
 }
