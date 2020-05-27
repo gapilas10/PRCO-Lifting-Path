@@ -5,13 +5,32 @@
     android:layout_height="match_parent"
     tools:context=".HomeFragment">
 
-    <TextView
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Home Fragment"
-        android:textSize="30sp"
-        android:gravity="center"
-        android:layout_centerInParent="true"
-        />
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center">
+
+        <Button
+            android:layout_height="wrap_content"
+            android:layout_width="200dp"
+            android:text="Local Video"
+            android:layout_margin="25dp"
+            android:id="@+id/btnLocal"/>
+        <Button
+            android:layout_height="wrap_content"
+            android:layout_width="200dp"
+            android:id="@+id/btnRealTime"
+            android:text="Real time camera"
+            android:layout_margin="25dp"/>
+
+        <Button
+            android:layout_height="wrap_content"
+            android:layout_width="200dp"
+            android:id="@+id/btnSettings"
+            android:text="Settings"
+            android:layout_margin="25dp"/>
+
+    </LinearLayout>
 
 </RelativeLayout>

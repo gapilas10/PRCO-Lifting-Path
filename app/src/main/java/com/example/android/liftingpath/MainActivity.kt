@@ -6,6 +6,8 @@ import android.view.MenuItem
 import android.widget.Toast
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.core.view.GravityCompat
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentTransaction
 import com.github.hiteshsondhi88.libffmpeg.FFmpeg
 import com.github.hiteshsondhi88.libffmpeg.LoadBinaryResponseHandler
@@ -20,7 +22,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     lateinit var cameraFragment: CameraFragment
     lateinit var videoFragment: VideoFragment
     lateinit var settingFragment: SettingFragment
-    lateinit var logoutFragment: LogoutFragment
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -29,7 +30,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
             setSupportActionBar(toolBar)
             val actionBar = supportActionBar
-            actionBar?.title = "Navigation Drawer"
+            actionBar?.title = "Lifting Path"
 
             val drawerToggle:ActionBarDrawerToggle = object : ActionBarDrawerToggle (
                 this,
@@ -55,7 +56,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 .commit()
 
     }
-
 
     override fun onNavigationItemSelected(menuItem: MenuItem): Boolean {
         when(menuItem.itemId)
@@ -89,14 +89,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 supportFragmentManager
                     .beginTransaction()
                     .replace(R.id.frame_layout,settingFragment)
-                    .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-                    .commit()
-            }
-            R.id.logout -> {
-                logoutFragment = LogoutFragment()
-                supportFragmentManager
-                    .beginTransaction()
-                    .replace(R.id.frame_layout,logoutFragment)
                     .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
                     .commit()
             }

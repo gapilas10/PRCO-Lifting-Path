@@ -70,7 +70,11 @@ class CameraFragment : Fragment(), CameraBridgeViewBase.CvCameraViewListener2  {
         cameraBridgeViewBase!!.setCvCameraViewListener(this)
         //Initialize button
         processButton.setOnClickListener{
+            // toggle processing on-off
             currentlyProcessing = !currentlyProcessing
+        }
+        clearButton.setOnClickListener{
+            listOfPoints.clear()
         }
     }
 
@@ -95,34 +99,33 @@ class CameraFragment : Fragment(), CameraBridgeViewBase.CvCameraViewListener2  {
 
         if(currentlyProcessing)
         {
+            // Get rid of alpha for processing
             Imgproc.cvtColor(frame, frame, Imgproc.COLOR_RGBA2RGB);
             val imageBlob = Dnn.blobFromImage(frame, IN_SCALE_FACTOR, Size(IN_WIDTH,IN_HEIGHT), Scalar(MEAN_VAL),true ,false)
             Log.d("image Blob :",imageBlob.toString())
 
             tensorflowNet.setInput(imageBlob)
-
+            // This is used to reshape the "Matrix" class provided by Java, as Java does not allow for 4 dimensional arrays, so we store the 3rd and 4th array into a 2D array
             val detections = tensorflowNet.forward().reshape(1,1)
 
             val cols = frame.cols()
             val rows = frame.rows()
 
-            for (i in 0 until detections.rows())
+            for (i in 0 until detections.rows()) // For every detection
             {
-                val confidence = detections.get(i,2)[0]
+                val confidence = detections.get(i,2)[0] // Get the confidence
                 if (confidence > THRESHOLD)
                 {
-                    //var classId = detections.get(i,1)[0]
-
                     val left = detections.get(i,3)[0]*cols
                     val top = detections.get(i,4)[0]*rows
                     val right = detections.get(i,5)[0]*cols
                     val bottom = detections.get(i,6)[0]*rows
 
                     // Draw rectangle around detected object.
-                    Imgproc.rectangle(frame, Point(left,top), Point(right,bottom), Scalar(0.0,255.0,0.0))
-                    val label = "yellow_band" + ":" + confidence
-                    val baseline = intArrayOf(1)
-                    val labelSize = Imgproc.getTextSize(label, 2, 1.0,2,baseline)
+                    //Imgproc.rectangle(frame, Point(left,top), Point(right,bottom), Scalar(0.0,255.0,0.0))
+                   // val label = "yellow_band" + ":" + confidence
+                    //val baseline = intArrayOf(1)
+                    //val labelSize = Imgproc.getTextSize(label, 2, 1.0,2,baseline)
 
                     // Find centre of rectangle from detected object.
                     val centre1 = (left + right) /2
@@ -130,24 +133,28 @@ class CameraFragment : Fragment(), CameraBridgeViewBase.CvCameraViewListener2  {
                     val circleCentre = Point(centre1,centre2)
 
                     listOfPoints.add(circleCentre)
-                    val matOfPoint = MatOfPoint()
-                    matOfPoint.fromList(listOfPoints)
-                    val listOfPoints = ArrayList<MatOfPoint>()
-                    listOfPoints.add(matOfPoint)
 
-                    Imgproc.polylines(frame,listOfPoints,false,Scalar(255.0,0.0,0.0),5)
 
                     //Imgproc.circle(frame,circleCentre, 5, Scalar(255.0,0.0,0.0), 5)
 
                     // Draw background for label
-                    Imgproc.rectangle(frame, Point(left,top-labelSize.height), Point(left+labelSize.width,top+baseline[0]),Scalar(0.0,0.0,0.0), 2)
+                    //Imgproc.rectangle(frame, Point(left,top-labelSize.height), Point(left+labelSize.width,top+baseline[0]),Scalar(0.0,0.0,0.0), 2)
                     //Imgproc.rectangle(frame, Point(right,bottom), Point(right+labelSize.height,top),Scalar(0.0,0.0,0.0), 2)
                     // Write class name and confidence
-                    Imgproc.putText(frame,label, Point(left,top), 2,1.0,
-                        Scalar(255.0,255.0,255.0)
-                    )
+                    //Imgproc.putText(frame,label, Point(left,top), 2,1.0,Scalar(255.0,255.0,255.0))
                 }
             }
+
+        }
+
+        if(listOfPoints.isNotEmpty())
+        {
+            val matOfPoint = MatOfPoint()
+            matOfPoint.fromList(listOfPoints)
+            val listOfPoints = ArrayList<MatOfPoint>()
+            listOfPoints.add(matOfPoint)
+
+            Imgproc.polylines(frame,listOfPoints,false,Scalar(SettingFragment.colorRed,SettingFragment.colorGreen,SettingFragment.colorBlue),SettingFragment.lineWidth)
         }
 
         return frame
@@ -206,7 +213,7 @@ class CameraFragment : Fragment(), CameraBridgeViewBase.CvCameraViewListener2  {
         }
         catch (e: IOException)
         {
-            Log.i("","Failed to upload a file")
+            Log.i("", "Failed to get path. Exception : $e")
         }
         return ""
     }

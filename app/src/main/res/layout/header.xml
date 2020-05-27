@@ -4,29 +4,16 @@
     android:layout_width="match_parent"
     android:layout_height="180dp"
     android:background="@drawable/background"
-    android:padding="16dp">
+    android:padding="10dp">
 
     <ImageView
-        android:layout_width="75dp"
-        android:layout_height="75dp"
-        android:src="@mipmap/ic_launcher_round"
-        android:layout_margin="20dp"/>
+        android:layout_width="125dp"
+        android:layout_height="125dp"
+        android:src="@mipmap/ic_custom_icon_foreground"
+        android:layout_gravity="center_vertical"
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="LiftingPath"
-        android:textColor="@color/colorBlack"
-        android:textStyle="bold"
-        android:textSize="20sp"
+        android:layout_marginTop="25dp"
         />
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="liftingpath@gmail.com?"
-        android:textColor="@color/colorBlack"
-        android:textSize="18sp"
-        />
 
 </LinearLayout>
