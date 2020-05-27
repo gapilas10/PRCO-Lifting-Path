@@ -381,6 +381,8 @@ public abstract class CameraBridgeViewBase extends SurfaceView implements Surfac
         }
     }
 
+
+    // Code added by me to fix full screen display
     private final Matrix mMatrix = new Matrix();
 
     private void updateMatrix() {
